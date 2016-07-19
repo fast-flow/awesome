@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimum-scale=1.0, maximum-scale=1.0">
+    <title>pull-refresh 下拉刷新</title>
+    <script type="text/javascript" src="../../build/iscroll-probe.js"></script>
+    <script src="../../build/jquery-3.0.0.min.js" ></script>
+    <style>
+.m-list {
+    position: relative;
+    height: 200px;
+    border:1px solid #AAA;
+    overflow: hidden;
+}
+.m-list-box {
+    position: relative;
+    z-index: 2;
+}
+.m-list-box-item {
+    background-color:white;
+    line-height: 30px;
+    border-bottom: 1px solid #DDD;
+}
+.m-list-box-loading {
+    background-color: white;
+    text-align: center;
+}
+.m-hide {
+    display: none !important;
+}
+.m-list-loadtip,
+.m-list-hold,
+.m-list-empty {
+    z-index: 1;
+    position: absolute;
+    top:0;
+    left:0;
+    width:100%;
+    font-size:40px;
+    text-align: center;
+    line-height: 1.5;
+}
+.m-list-loadtip--down,
+.m-list-hold--down,
+.m-list-empty--down {
+    top:auto;
+    bottom:0;
+}
+/* 辅助调试函数 */
+.state {
+    width:20px;
+    height:20px;
+    overflow: hidden;
+    border-radius: 3px;
+    border:1px solid #EEE;
+    display:inline-block;
+}
+.state--on {
+    background-color: green;
+}
+    </style>
+</head>
+<body>
+    <span class="state" id="up" ></span>up<br>
+    <span class="state" id='upHoldSomeLength'></span>upHoldSomeLength<br>
+    <span class="state" id="down" ></span>down<br>
+    <span class="state" id='downHoldSomeLength'></span>downHoldSomeLength
+<div id="wrapper" class="m-list" >
+    <!-- wrapper-box 会变成 scroll 的容器 -->
+    <div id="wrapper-box" class="m-list-box" >
+        <div class="m-list-box-item" >1</div>
+        <div class="m-list-box-item" >2</div>
+        <div class="m-list-box-item" >3</div>
+        <div class="m-list-box-item" >4</div>
+        <div class="m-list-box-item" >5</div>
+        <div class="m-list-box-item" >6</div>
+        <div class="m-list-box-item" >7</div>
+        <div class="m-list-box-item" >8</div>
+        <div class="m-list-box-item" >9</div>
+        <div class="m-list-box-item" >10</div>
+        <div class="m-list-box-item" >11</div>
+        <div class="m-list-box-item" >12</div>
+        <div class="m-list-box-item" >13</div>
+        <div class="m-list-box-item" >14</div>
+        <div class="m-list-box-item" >15</div>
+        <div class="m-list-box-item" >16</div>
+    </div>
+    <div class="m-list-loadtip m-hide js-up-loadtip" >下拉刷新</div>
+    <div class="m-list-hold m-hide js-up-hold" >松开试试</div>
+    <div class="m-list-empty m-hide js-up-empty" >暂无数据</div>
+    <div class="m-list-loadtip m-list-loadtip--down m-hide js-down-loadtip" >上拉刷新</div>
+    <div class="m-list-hold m-list-hold--down m-hide js-down-hold" >松开试试</div>
+    <div class="m-list-empty m-list-empty--down m-hide js-down-empty" >暂无数据</div>
+</div>
+<script>
+// document.addEventListener('touchmove', function (e) { e.preventDefault(); }, false);
+$(function () {
+
+    var $downLoadtip = $('.js-down-loadtip')
+    var $downHold = $('.js-down-hold')
+    var $downEmpty = $('.js-down-empty')
+
+    var $upLoadtip = $('.js-up-loadtip')
+    var $upHold = $('.js-up-hold')
+    var $upEmpty = $('.js-up-empty')
+
+    var $wrapperBox = $('#wrapper-box')
+    myScroll = new IScroll('#wrapper', {
+        probeType: 3,
+        mouseWheel: true
+    });
+    var state = {
+        holdSomeLenght: 60
+    }
+    myScroll.on('scroll', function () {
+        // 拉倒顶部
+        state.up = this.y > 0,
+        // 拉倒顶部并超过一些距离
+        state.upHoldSomeLength =  this.y > state.holdSomeLenght
+        // 拉倒底部
+        state.down = this.maxScrollY >= this.y,
+        // 拉倒底部并超过一些距离
+        state.downHoldSomeLength = this.maxScrollY > this.y + state.holdSomeLenght,
+        // 辅助调试函数
+        stateInfo(state)
+        updateUI()
+    })
+    myScroll.on('scrollEnd', function () {
+        updateData()
+    })
+    function updateUI () {
+        // 到顶部出加载提示
+        if (state.up) {
+            $upLoadtip.removeClass('m-hide')
+            // 超出顶部一定距离出现加载提示2
+            if (state.upHoldSomeLength) {
+                $upHold.removeClass('m-hide')
+                $upLoadtip.addClass('m-hide')
+            }
+            else {
+                $upHold.addClass('m-hide')
+            }
+        }
+        else {
+            $upLoadtip.addClass('m-hide')
+        }
+        // 到底部出现加载提示
+        if (state.down) {
+            $downLoadtip.removeClass('m-hide')
+            // 超出底部一定距离出现加载提示2
+            if (state.downHoldSomeLength) {
+                $downHold.removeClass('m-hide')
+                $downLoadtip.addClass('m-hide')
+            }
+            else {
+                $downHold.addClass('m-hide')
+            }
+        }
+        else {
+            $downLoadtip.addClass('m-hide')
+        }
+    }
+    function updateData () {
+        // 结束滚动时候还在顶部就ajax刷新
+        var $loading = $('<div class="m-list-box-loading" >加载中...</div>')
+        if ($wrapperBox.data('xhr')) {
+            return false
+        }
+        if (state.up) {
+            $wrapperBox.prepend($loading)
+            myScroll.refresh()
+            $wrapperBox.data('xhr', true)
+            //模拟 ajax
+            setTimeout(function () {
+                $loading.remove()
+                $wrapperBox.prepend([
+                    '<div class="m-list-box-item" >' + new Date().getTime() + '</div>',
+                    '<div class="m-list-box-item" >b</div>',
+                    '<div class="m-list-box-item" >c</div>'
+                ].join('\n'))
+                $wrapperBox.data('xhr', false)
+                myScroll.refresh()
+            }, 1500)
+        }
+        if (state.down) {
+            $wrapperBox.append($loading)
+            myScroll.refresh()
+            myScroll.scrollToElement($loading.get(0), null, null, true)
+            $wrapperBox.data('xhr', true)
+            //模拟 ajax
+            setTimeout(function () {
+                $loading.remove()
+                var $newItem = $([
+                    '<div class="m-list-box-item" >' + new Date().getTime() + '</div>',
+                    '<div class="m-list-box-item" >b</div>',
+                    '<div class="m-list-box-item" >c</div>'
+                ].join('\n'))
+                $wrapperBox.append($newItem)
+                myScroll.refresh()
+                myScroll.scrollToElement($newItem.last().get(0), null, null, true)
+                $wrapperBox.data('xhr', false)
+            }, 1500)
+        }
+    }
+})
+</script>
+
+<script>
+function stateInfo (state) {
+    for (var id in state) {
+        var value = state[id]
+        var $target = $('#' + id)
+        if (value) {
+            $target.addClass('state--on')
+        }
+        else {
+            $target.removeClass('state--on')
+        }
+    }
+}
+</script>
+</body>
+</html>
