@@ -115,13 +115,13 @@ $(function () {
     }
     myScroll.on('scroll', function () {
         // 拉倒顶部
-        state.up = this.y > 0,
+        state.up = this.y > 0.5
         // 拉倒顶部并超过一些距离
         state.upHoldSomeLength =  this.y > state.holdSomeLenght
         // 拉倒底部
-        state.down = this.maxScrollY >= this.y,
+        state.down = this.maxScrollY >= this.y - 0.5
         // 拉倒底部并超过一些距离
-        state.downHoldSomeLength = this.maxScrollY > this.y + state.holdSomeLenght,
+        state.downHoldSomeLength = this.maxScrollY > this.y + state.holdSomeLenght
         // 辅助调试函数
         stateInfo(state)
         updateUI()
