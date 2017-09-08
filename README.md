@@ -1,7 +1,13 @@
 # awesome
 
+## 标注软件
 
-- [./demo/iscroll/](./demo/iscroll/)
+- [PxCook](http://www.fancynode.com.cn/pxcook) (PSD快速测量)
+- [MarkMan](http://www.getmarkman.com/) (任意格式图片手动测量)
+
+## scroll
+
+- [iscroll](./demo/iscroll/)
 
 ## date
 
